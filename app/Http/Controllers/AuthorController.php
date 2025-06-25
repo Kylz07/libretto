@@ -2,20 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Book;
-use App\Http\Requests\StoreBookRequest;
-use App\Http\Requests\UpdateBookRequest;
+use Illuminate\Http\Request;
 
-class BookController extends Controller
+class AuthorController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //load books with their authors and genres
-        $books = Book::with(['author', 'genres'])->get();
-        return view('books.index', compact('books'));
+        return 'Authors index page';
     }
 
     /**
@@ -29,7 +25,7 @@ class BookController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreBookRequest $request)
+    public function store(Request $request)
     {
         //
     }
@@ -37,7 +33,7 @@ class BookController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Book $book)
+    public function show(string $id)
     {
         //
     }
@@ -45,7 +41,7 @@ class BookController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Book $book)
+    public function edit(string $id)
     {
         //
     }
@@ -53,7 +49,7 @@ class BookController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateBookRequest $request, Book $book)
+    public function update(Request $request, string $id)
     {
         //
     }
@@ -61,7 +57,7 @@ class BookController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Book $book)
+    public function destroy(string $id)
     {
         //
     }
