@@ -13,7 +13,9 @@ class BookController extends Controller
      */
     public function index()
     {
-        //
+        // Eager load author and genres for all books, paginate 10 per page
+        $books = Book::with(['author', 'genres'])->paginate(10);
+        return view('books.index', compact('books'));
     }
 
     /**
