@@ -20,5 +20,6 @@ class DatabaseSeeder extends Seeder
                 \App\Models\Review::factory(5)->create(['book_id' => $book->id]);
             });
         });
+        $this->call(\Database\Seeders\UserSeeder::class);
     }
 }
