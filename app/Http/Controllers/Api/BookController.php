@@ -9,16 +9,40 @@ use Illuminate\Support\Facades\Validator;
 
 class BookController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum');
+    }
+
+    protected function errorResponse($message, $code = 400, $errors = [])
+    {
+        return response()->json([
+            'success' => false,
+            'message' => $message,
+            'code' => $code,
+            'errors' => $errors,
+        ], $code);
+    }
+
     public function index()
     {
         $books = Book::with(['author', 'genres'])->paginate(10);
-        return response()->json($books);
+        return response()->json([
+            'success' => true,
+            'data' => $books,
+        ]);
     }
 
     public function show($id)
     {
-        $book = Book::with(['author', 'genres', 'reviews'])->findOrFail($id);
-        return response()->json($book);
+        $book = Book::with(['author', 'genres', 'reviews'])->find($id);
+        if (!$book) {
+            return $this->errorResponse('Book not found', 404);
+        }
+        return response()->json([
+            'success' => true,
+            'data' => $book,
+        ]);
     }
 
     public function store(Request $request)
@@ -30,26 +54,25 @@ class BookController extends Controller
             'genres.*' => 'exists:genres,id',
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation error',
-                'errors' => $validator->errors()->all(),
-            ], 400);
+            return $this->errorResponse('Validation error', 422, $validator->errors()->all());
         }
         $book = Book::create($request->only(['title', 'author_id']));
         if ($request->has('genres')) {
             $book->genres()->sync($request->genres);
         }
         return response()->json([
-            'status' => 'success',
-            'book' => $book->load(['author', 'genres']),
+            'success' => true,
+            'data' => $book->load(['author', 'genres']),
             'message' => 'Book created successfully',
         ], 201);
     }
 
     public function update(Request $request, $id)
     {
-        $book = Book::findOrFail($id);
+        $book = Book::find($id);
+        if (!$book) {
+            return $this->errorResponse('Book not found', 404);
+        }
         $validator = Validator::make($request->all(), [
             'title' => 'sometimes|required|string|max:255',
             'author_id' => 'sometimes|required|exists:authors,id',
@@ -57,29 +80,28 @@ class BookController extends Controller
             'genres.*' => 'exists:genres,id',
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation error',
-                'errors' => $validator->errors()->all(),
-            ], 400);
+            return $this->errorResponse('Validation error', 422, $validator->errors()->all());
         }
         $book->update($request->only(['title', 'author_id']));
         if ($request->has('genres')) {
             $book->genres()->sync($request->genres);
         }
         return response()->json([
-            'status' => 'success',
-            'book' => $book->load(['author', 'genres']),
+            'success' => true,
+            'data' => $book->load(['author', 'genres']),
             'message' => 'Book updated successfully',
         ]);
     }
 
     public function destroy($id)
     {
-        $book = Book::findOrFail($id);
+        $book = Book::find($id);
+        if (!$book) {
+            return $this->errorResponse('Book not found', 404);
+        }
         $book->delete();
         return response()->json([
-            'status' => 'success',
+            'success' => true,
             'message' => 'Book deleted successfully',
         ]);
     }

@@ -9,6 +9,21 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthorController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum');
+    }
+
+    protected function errorResponse($message, $code = 400, $errors = [])
+    {
+        return response()->json([
+            'success' => false,
+            'message' => $message,
+            'code' => $code,
+            'errors' => $errors,
+        ], $code);
+    }
+
     public function index()
     {
         $authors = Author::paginate(10);
@@ -17,7 +32,10 @@ class AuthorController extends Controller
 
     public function show($id)
     {
-        $author = Author::with('books')->findOrFail($id);
+        $author = Author::with('books')->find($id);
+        if (!$author) {
+            return $this->errorResponse('Author not found', 404);
+        }
         return response()->json($author);
     }
 
@@ -27,15 +45,11 @@ class AuthorController extends Controller
             'name' => 'required|string|max:255|unique:authors,name',
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation error',
-                'errors' => $validator->errors()->all(),
-            ], 400);
+            return $this->errorResponse('Validation error', 422, $validator->errors()->all());
         }
         $author = Author::create($request->only(['name']));
         return response()->json([
-            'status' => 'success',
+            'success' => true,
             'author' => $author,
             'message' => 'Author created successfully',
         ], 201);
@@ -43,20 +57,19 @@ class AuthorController extends Controller
 
     public function update(Request $request, $id)
     {
-        $author = Author::findOrFail($id);
+        $author = Author::find($id);
+        if (!$author) {
+            return $this->errorResponse('Author not found', 404);
+        }
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:authors,name,' . $id,
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation error',
-                'errors' => $validator->errors()->all(),
-            ], 400);
+            return $this->errorResponse('Validation error', 422, $validator->errors()->all());
         }
         $author->update($request->only(['name']));
         return response()->json([
-            'status' => 'success',
+            'success' => true,
             'author' => $author,
             'message' => 'Author updated successfully',
         ]);
@@ -64,10 +77,13 @@ class AuthorController extends Controller
 
     public function destroy($id)
     {
-        $author = Author::findOrFail($id);
+        $author = Author::find($id);
+        if (!$author) {
+            return $this->errorResponse('Author not found', 404);
+        }
         $author->delete();
         return response()->json([
-            'status' => 'success',
+            'success' => true,
             'message' => 'Author deleted successfully',
         ]);
     }
