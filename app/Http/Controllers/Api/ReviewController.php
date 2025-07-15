@@ -49,14 +49,13 @@ class ReviewController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'book_id' => 'required|exists:books,id',
-            'user_id' => 'nullable|exists:users,id',
             'content' => 'required|string',
             'rating' => 'required|integer|min:1|max:5',
         ]);
         if ($validator->fails()) {
             return $this->errorResponse('Validation error', 422, $validator->errors()->all());
         }
-        $review = Review::create($request->only(['book_id', 'user_id', 'content', 'rating']));
+        $review = Review::create($request->only(['book_id', 'content', 'rating']));
         return response()->json([
             'success' => true,
             'data' => $review,
