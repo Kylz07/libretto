@@ -35,13 +35,16 @@ class ReviewController extends Controller
 
     public function show($id)
     {
-        $review = Review::with(['book', 'user'])->find($id);
-        if (!$review) {
-            return $this->errorResponse('Review not found', 404);
+        // $id is now the book id; return all reviews for this book
+        $reviews = Review::with(['book'])
+            ->where('book_id', $id)
+            ->get();
+        if ($reviews->isEmpty()) {
+            return $this->errorResponse('No reviews found for this book', 404);
         }
         return response()->json([
             'success' => true,
-            'data' => $review,
+            'data' => $reviews,
         ]);
     }
 

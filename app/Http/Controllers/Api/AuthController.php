@@ -81,6 +81,26 @@ class AuthController extends Controller
         }
 
         RateLimiter::clear($key);
+
+        // Check for existing valid token (not expired)
+        $existingToken = $user->tokens()
+            ->where('name', 'auth_token')
+            ->where('expires_at', '>', now())
+            ->first();
+
+        if ($existingToken) {
+            return response()->json([
+                'status' => 'success',
+                'token' => $existingToken->plainTextToken ?? $existingToken->token,
+                'user' => [
+                    'id' => (string) $user->id,
+                    'username' => $user->name,
+                    'email' => $user->email,
+                ],
+                'message' => 'User already logged in',
+            ], 200);
+        }
+
         // create sanctum token (3 minutes)
         $token = $user->createToken('auth_token', ['*'], now()->addMinutes(3))->plainTextToken;
 
